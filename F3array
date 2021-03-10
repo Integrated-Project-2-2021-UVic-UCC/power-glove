@@ -1,0 +1,72 @@
+//////////////////////////////////////////////////////////////
+//                                                          //
+//         INTEGRATED PROJECT 2 - LSC POWER GLOVE           //
+//         TEAM 2:     IBRA   URI   GERARD   ALEIX          //
+//         CODE 1.2:     FLEX SENSOR ARRAY                  //
+//                                                          //
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//                          SETUP                           //
+//////////////////////////////////////////////////////////////
+                                                            //
+int files = 10;                                       //
+int columnes = 5;                                     //
+int array1[10][5];                                //
+int F1 = 0;                                                 //
+int map1 = 0;                                               //                                                     
+void setup() {                                              //
+  Serial.begin(115200);                                     // Serial config
+  Serial.println("//////////////////////////////////////////////////////////////");
+  Serial.println("//                                                          //");
+  Serial.println("//         INTEGRATED PROJECT 2 - LSC POWER GLOVE           //");
+  Serial.println("//         TEAM 2:     IBRA   URI   GERARD   ALEIX          //");
+  Serial.println("//         CODE 1.2:     FLEX SENSOR ARRAY                  //");
+  Serial.println("//                                                          //");
+  Serial.println("//////////////////////////////////////////////////////////////");
+  //Serial.println("X Y Z U V W");                          // Headers
+}                                                           //
+                                                            //
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//                          MAIN LOOP                       //
+//////////////////////////////////////////////////////////////
+                                                            //
+void loop() {                                               //
+                                                            //
+  for(int i=0;i<files;i++){ 
+    for(int j=0;j<columnes;j++){              
+    //F1 = analogRead(f1);
+      Serial.print("i = ");
+      Serial.print(i);
+      //Serial.print(" ,");
+      //map1 = map(i,0,100,0,1000);
+      //Serial.print(" map1 = ");
+      //Serial.print(map1);
+      Serial.print(" | ");
+      array1[i][j] = i;
+      delay(100);
+      //Serial.print(array1[i]);
+    }
+    Serial.println(" ");
+    delay(100); 
+  }
+  Serial.println("");
+  Serial.println(" array = ");
+  for(int i=0;i<files;i++){
+    Serial.print(" fila ");
+    Serial.print(i);
+    Serial.print(" { ");
+    for(int j=0;j<columnes;j++){  
+      Serial.print(array1[i][j]);
+      Serial.print(" ");  
+      delay(100);
+    }
+    
+    Serial.println(" } ");
+    delay(100); 
+  }
+}
+                                                            //
+//////////////////////////////////////////////////////////////
