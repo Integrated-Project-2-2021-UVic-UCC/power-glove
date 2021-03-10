@@ -1,1 +1,49 @@
+//////////////////////////////////////////////////////////////
+//                                                          //
+//         INTEGRATED PROJECT 2 - LSC POWER GLOVE           //
+//         TEAM 2:     IBRA   URI   GERARD   ALEIX          //
+//         CODE 1.1:     FLEX SENSOR MAP                    //
+//                                                          //
+//////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////
+//                          SETUP                           //
+//////////////////////////////////////////////////////////////
+                                                            //
+const int f1 = A0;                                          //
+int F1 = 0;                                                 //
+int map1 = 0;                                               //                                                     
+void setup() {                                              //
+  Serial.begin(115200);                                     // Serial config
+  Serial.println("//////////////////////////////////////////////////////////////");
+  Serial.println("//                                                          //");
+  Serial.println("//         INTEGRATED PROJECT 2 - LSC POWER GLOVE           //");
+  Serial.println("//         TEAM 2:     IBRA   URI   GERARD   ALEIX          //");
+  Serial.println("//         CODE 1.1:     FLEX SENSOR MAP                    //");
+  Serial.println("//                                                          //");
+  Serial.println("//////////////////////////////////////////////////////////////");
+  //Serial.println("X Y Z U V W");                          // Headers
+}                                                           //
+                                                            //
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//                          MAIN LOOP                       //
+//////////////////////////////////////////////////////////////
+                                                            //
+void loop() {                                               //
+                                                            //
+  for(int i=0;i<100;i++){             
+    F1 = analogRead(f1);
+    Serial.print("i = ");
+    Serial.print(i);
+    Serial.print("   ,");
+    map1 = map(i,0,100,0,1000);
+    Serial.print("    map1 = ");
+    Serial.println(map1);
+    delay(1000); 
+  }
+  delay(1000); 
+}
+                                                            //
+//////////////////////////////////////////////////////////////
