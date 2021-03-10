@@ -1,0 +1,105 @@
+//////////////////////////////////////////////////////////////
+//                                                          //
+//         INTEGRATED PROJECT 2 - LSC POWER GLOVE           //
+//         TEAM 2:     IBRA   URI   GERARD   ALEIX          //
+//         CODE 1.4:     INTERNAL INTERRUPT IMPROVED        //
+//                                                          //
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//                          SETUP                           //
+//////////////////////////////////////////////////////////////
+                                                            //
+#include <TimerOne.h>                                       //  
+                                                            //                                               
+int files = 10;                                             //
+int columnes = 5;                                           //
+int array1[10][5];                                          //
+int F1 = 0;                                                 //
+int map1 = 0;                                               //
+int i = 0;                                                  //
+int j = 0;                                                  //
+int x = 0;                                                  //
+int t = 0;
+                                                            //                                                    
+void setup() {                                              //
+  Serial.begin(9600);                                     // Serial config
+  Serial.println("//////////////////////////////////////////////////////////////");
+  Serial.println("//                                                          //");
+  Serial.println("//         INTEGRATED PROJECT 2 - LSC POWER GLOVE           //");
+  Serial.println("//         TEAM 2:     IBRA   URI   GERARD   ALEIX          //");
+  Serial.println("//         CODE 1.4:     INTERNAL INTERRUPT IMPROVED        //");
+  Serial.println("//                                                          //");
+  Serial.println("//////////////////////////////////////////////////////////////");
+  //Serial.println("X Y Z U V W");                          // Headers
+  //Timer1.initialize(2000);                                  // Interrupció interna cicle 2ms
+  Timer1.initialize(1000000);                                  // Interrupció interna cicle 1s
+  Timer1.attachInterrupt(ISR_interna);                              // Int interna declaració funció
+}                                                           //
+                                                            //
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//                          MAIN LOOP                       //
+//////////////////////////////////////////////////////////////
+                                                            //
+void loop() {                                               //
+  //Serial.println("Hello there !");
+  //delay(250); 
+  x=random(0,1000);                                         //
+  delay(250);
+  
+}
+                                                            //
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//                          INTERRUPT                       //
+//////////////////////////////////////////////////////////////
+                                                            //
+void ISR_interna(){                                         // Funcio interrupcio interna 
+
+  static uint32_t temps = millis();
+  if (millis() > temps + 25){               
+    Serial.print("x = ");
+    Serial.print(x);
+    Serial.print(" | ");
+    array1[i][j] = x; 
+    i++;
+    if ( i >= files ) {
+      j++;
+    }
+    temps = millis();
+    if (i >= files){
+      Serial.println("");
+      Serial.println(" array = ");
+      for(int i=0;i<files;i++){
+        Serial.print(" variable ");
+        Serial.print(i);
+        Serial.print(" { ");
+        for(int j=0;j<columnes;j++){  
+          Serial.print(array1[i][j]);
+          Serial.print(" ");  
+          delay(100);
+        }
+        Serial.println(" } ");
+        delay(100); 
+      }
+      i = 0;
+      if (j >= columnes){
+        j = 0;
+        for(int i=0;i<files;i++){
+          for(int j=0;j<columnes;j++){  
+            array1[i][j] = 0;                                 // Reset array
+          }
+        } 
+      }
+    }
+  } 
+}
+                                                            //
+//////////////////////////////////////////////////////////////
+
+  
+
+  
