@@ -2,7 +2,7 @@
 //                                                          //
 //         INTEGRATED PROJECT 2 - LSC POWER GLOVE           //
 //         TEAM 2:     IBRA   URI   GERARD   ALEIX          //
-//         CODE 1.2:     FLEX SENSOR ARRAY                  //
+//         CODE 0.2:            ARRAY                       //
 //                                                          //
 //////////////////////////////////////////////////////////////
 
@@ -21,7 +21,7 @@ void setup() {                                              //
   Serial.println("//                                                          //");
   Serial.println("//         INTEGRATED PROJECT 2 - LSC POWER GLOVE           //");
   Serial.println("//         TEAM 2:     IBRA   URI   GERARD   ALEIX          //");
-  Serial.println("//         CODE 1.2:     FLEX SENSOR ARRAY                  //");
+  Serial.println("//         CODE 0.2:            ARRAY                       //");
   Serial.println("//                                                          //");
   Serial.println("//////////////////////////////////////////////////////////////");
   //Serial.println("X Y Z U V W");                          // Headers
