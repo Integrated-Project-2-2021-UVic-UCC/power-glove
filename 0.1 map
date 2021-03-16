@@ -2,7 +2,7 @@
 //                                                          //
 //         INTEGRATED PROJECT 2 - LSC POWER GLOVE           //
 //         TEAM 2:     IBRA   URI   GERARD   ALEIX          //
-//         CODE 1.1:     FLEX SENSOR MAP                    //
+//         CODE 0.1:     FLEX SENSOR MAP                    //
 //                                                          //
 //////////////////////////////////////////////////////////////
 
@@ -19,7 +19,7 @@ void setup() {                                              //
   Serial.println("//                                                          //");
   Serial.println("//         INTEGRATED PROJECT 2 - LSC POWER GLOVE           //");
   Serial.println("//         TEAM 2:     IBRA   URI   GERARD   ALEIX          //");
-  Serial.println("//         CODE 1.1:     FLEX SENSOR MAP                    //");
+  Serial.println("//         CODE 0.1:     FLEX SENSOR MAP                    //");
   Serial.println("//                                                          //");
   Serial.println("//////////////////////////////////////////////////////////////");
   //Serial.println("X Y Z U V W");                          // Headers
