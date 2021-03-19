@@ -1,0 +1,154 @@
+//////////////////////////////////////////////////////////////
+//                                                          //
+//         INTEGRATED PROJECT 2 - LSC POWER GLOVE           //
+//         TEAM 2:     IBRA   URI   GERARD   ALEIX          //
+//         CODE 1.4:       FLEX x2 - A0 + A1                //
+//                                                          //
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//                          SETUP                           //
+//////////////////////////////////////////////////////////////
+                                                            //
+#include <TimerOne.h>                                       //  
+                                                            //          
+int files = 5;                                              //
+int columnes = 5;                                           //
+int array0[5][5];                                           //
+int array1[5][5];                                           //
+int F1 = 0;                                                 //
+int map1 = 0;                                               //
+int i = 0;                                                  //
+int j = 0;                                                  //
+int x = 0;                                                  //
+int y = 0;                                                  //
+int z = 0;                                                  //
+int v = 0;                                                  //
+int w = 0;                                                  //
+int t = 0;                                                  //
+int rA0 = 0;                                                //
+int sumx = 0;                                               //
+int sumy = 0;                                               //
+int sumz = 0;                                               //
+int sumv = 0;                                               //
+int sumw = 0;                                               //
+int aritx = 0;                                              //
+int arity = 0;                                              //
+int M = 0;                                                  //
+int M0 = 0;                                                 //
+int M1 = 0;                                                 //
+                                                            //
+const int POLZE = A0;                                       //
+const int INDEX = A1;                                       //
+                                                            // 
+void setup() {                                              //
+  Serial.begin(9600);                                     // Serial config
+  Serial.println("//////////////////////////////////////////////////////////////");
+  Serial.println("//                                                          //");
+  Serial.println("//         INTEGRATED PROJECT 2 - LSC POWER GLOVE           //");
+  Serial.println("//         TEAM 2:     IBRA   URI   GERARD   ALEIX          //");
+  Serial.println("//         CODE 1.4:       FLEX x2 - A0 + A1                //");
+  Serial.println("//                                                          //");
+  Serial.println("//////////////////////////////////////////////////////////////");
+  //Serial.println("X Y Z U V W");                          // Headers
+  //Timer1.initialize(2000);                                // Interrupció interna cicle 2ms
+  Timer1.initialize(200000);                               // Interrupció interna cicle 0.1s
+  Timer1.attachInterrupt(ISR_interna);                      // Int interna declaració funció
+  pinMode(POLZE,INPUT);                                     //
+}                                                           //
+                                                            //
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//                          MAIN LOOP                       //
+//////////////////////////////////////////////////////////////
+                                                            //
+void loop() {                                               //
+                                                            //
+  if ( M == 1 ){
+    static uint32_t temps = millis();
+    if (millis() > temps + 25){
+      Serial.println("");
+      Serial.print("CAPTURA ");
+      Serial.print(j);
+      Serial.print(" [ ");
+      Serial.print("POLZE -> ");
+      if ( aritx <= 700 ) {
+        aritx = 700;
+      }
+      if ( aritx >= 950 ) {
+        aritx = 950;
+      }
+      M0 = map(aritx,700,950,0,4);
+      Serial.print(M0);
+      Serial.print(" ] -");
+      Serial.print(" [ ");
+      Serial.print("INDEX -> ");
+      if ( arity <= 650 ) {
+        arity = 650;
+      }
+      if ( arity >= 900 ) {
+        arity = 900;
+      }
+      M1 = map(arity,650,900,0,4);
+      Serial.print(M1);
+      Serial.println(" ]");
+      M = 0;
+      delay (1000);
+    }
+  }
+
+  delay(250);                                               //
+                                                            //
+}                                                           //
+                                                            //
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//                          INTERRUPT                       //
+//////////////////////////////////////////////////////////////
+                                                            //
+void ISR_interna(){                                         // Funcio interrupcio interna 
+                                                            //
+  static uint32_t temps = millis();
+  if (millis() > temps + 25){
+    x = analogRead(POLZE);                                     
+    y = analogRead(INDEX);               
+    Serial.print("x = ");
+    Serial.print(x);
+    Serial.print(" | ");
+    Serial.print("y = ");
+    Serial.print(y);
+    Serial.println(" | ");
+    array0[i][j] = x; 
+    array1[i][j] = y; 
+    sumx = sumx+x;
+    sumy = sumy+y;
+    i++;
+    temps = millis();
+    if ( i >= files ){
+      j++;
+      aritx = sumx/i;
+      arity = sumy/i;
+      sumx = 0;
+      sumy = 0;
+      i = 0;
+      M = 1;
+      if (j >= columnes){
+        j = 0;
+        for(int i=0;i<files;i++){
+          for(int j=0;j<columnes;j++){                      //
+            array0[i][j] = 0;                               // Reset array A0
+            array1[i][j] = 0;                               // Reset array A1
+          }                                                 //
+        }                                                   //
+      }                                                     //
+    }                                                       //
+  }                                                         //
+}                                                           //
+                                                            //
+//////////////////////////////////////////////////////////////
+
+  
+
+  
