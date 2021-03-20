@@ -2,7 +2,7 @@
 //                                                          //
 //         INTEGRATED PROJECT 2 - LSC POWER GLOVE           //
 //         TEAM 2:     IBRA   URI   GERARD   ALEIX          //
-//         CODE 1.4:       FLEX x2 - A0 + A1                //
+//         CODE 1.4:       FLEX x2 - A0 + A1 + AN           //
 //                                                          //
 //////////////////////////////////////////////////////////////
 
@@ -12,37 +12,47 @@
                                                             //
 #include <TimerOne.h>                                       //  
                                                             //          
-int files = 5;                                              //
-int columnes = 5;                                           //
-int array0[5][5];                                           //
+int files = 5;                                              // Mida array files
+int columnes = 5;                                           // Mida array columnes
+int array0[5][5];                                           // Arrays
 int array1[5][5];                                           //
-int F1 = 0;                                                 //
-int map1 = 0;                                               //
-int i = 0;                                                  //
+int array2[5][5];                                           //
+int array3[5][5];                                           //
+int array4[5][5];                                           //
+int i = 0;                                                  // Variables de bucle
 int j = 0;                                                  //
-int x = 0;                                                  //
-int y = 0;                                                  //
-int z = 0;                                                  //
-int v = 0;                                                  //
-int w = 0;                                                  //
-int t = 0;                                                  //
-int rA0 = 0;                                                //
-int sumx = 0;                                               //
-int sumy = 0;                                               //
-int sumz = 0;                                               //
-int sumv = 0;                                               //
-int sumw = 0;                                               //
-int aritx = 0;                                              //
-int arity = 0;                                              //
-int M = 0;                                                  //
-int M0 = 0;                                                 //
+int t = 50;                                                 // Variable temps
+int n = 0;                                                  // Variable comptador
+int rA0 = 0;                                                // Lectura sensors
+int rA1 = 0;                                                //
+int rA2 = 0;                                                //
+int rA3 = 0;                                                //
+int rA4 = 0;                                                //
+int sum0 = 0;                                               // Suma lectures
+int sum1 = 0;                                               //
+int sum2 = 0;                                               //
+int sum3 = 0;                                               //
+int sum4 = 0;                                               //
+int arit0 = 0;                                              // Mitjana aritmetica lectures
+int arit1 = 0;                                              //
+int arit2 = 0;                                              //
+int arit3 = 0;                                              //
+int arit4 = 0;                                              //
+int M = 0;                                                  // 
+int M0 = 0;                                                 // Mapejat valor final
 int M1 = 0;                                                 //
+int M2 = 0;                                                 //
+int M3 = 0;                                                 //
+int M4 = 0;                                                 //
                                                             //
-const int POLZE = A0;                                       //
+const int POLZE = A0;                                       // Dits de la ma
 const int INDEX = A1;                                       //
+const int COR = A2;                                         //
+const int ANULAR = A3;                                      //
+const int MENUT = A4;                                       //
                                                             // 
 void setup() {                                              //
-  Serial.begin(9600);                                     // Serial config
+  Serial.begin(9600);                                       // Serial config
   Serial.println("//////////////////////////////////////////////////////////////");
   Serial.println("//                                                          //");
   Serial.println("//         INTEGRATED PROJECT 2 - LSC POWER GLOVE           //");
@@ -50,11 +60,15 @@ void setup() {                                              //
   Serial.println("//         CODE 1.4:       FLEX x2 - A0 + A1                //");
   Serial.println("//                                                          //");
   Serial.println("//////////////////////////////////////////////////////////////");
-  //Serial.println("X Y Z U V W");                          // Headers
-  //Timer1.initialize(2000);                                // Interrupció interna cicle 2ms
-  Timer1.initialize(200000);                               // Interrupció interna cicle 0.1s
+                                                            //
+  Timer1.initialize(200000);                                // Interrupció interna cicle 0.2s
   Timer1.attachInterrupt(ISR_interna);                      // Int interna declaració funció
-  pinMode(POLZE,INPUT);                                     //
+                                                            //
+  pinMode(POLZE,INPUT);                                     // Definició variables sensors flex
+  pinMode(INDEX,INPUT);                                     //
+  pinMode(COR,INPUT);                                       //
+  pinMode(ANULAR,INPUT);                                    //
+  pinMode(MENUT,INPUT);                                     //
 }                                                           //
                                                             //
 //////////////////////////////////////////////////////////////
@@ -63,43 +77,29 @@ void setup() {                                              //
 //                          MAIN LOOP                       //
 //////////////////////////////////////////////////////////////
                                                             //
-void loop() {                                               //
+void loop() {                                               // Rutina principal
                                                             //
-  if ( M == 1 ){
-    static uint32_t temps = millis();
-    if (millis() > temps + 25){
-      Serial.println("");
-      Serial.print("CAPTURA ");
-      Serial.print(j);
-      Serial.print(" [ ");
-      Serial.print("POLZE -> ");
-      if ( aritx <= 700 ) {
-        aritx = 700;
-      }
-      if ( aritx >= 950 ) {
-        aritx = 950;
-      }
-      M0 = map(aritx,700,950,0,4);
-      Serial.print(M0);
-      Serial.print(" ] -");
-      Serial.print(" [ ");
-      Serial.print("INDEX -> ");
-      if ( arity <= 650 ) {
-        arity = 650;
-      }
-      if ( arity >= 900 ) {
-        arity = 900;
-      }
-      M1 = map(arity,650,900,0,4);
-      Serial.print(M1);
-      Serial.println(" ]");
-      M = 0;
-      delay (1000);
-    }
-  }
-
-  delay(250);                                               //
-                                                            //
+  if ( M == 1 ){                                            // En cas de retorn M=1
+    static uint32_t temps = millis();                       // 
+    if (millis() > temps + t){                              // Timer per evitar rebots
+      temps = millis();                                     // Reset temps
+      Serial.println("");                                   //
+      Serial.print("CAPTURA ");                             //
+      Serial.print(n);                                      // Lectura nº
+      Serial.print(" [ ");                                  //
+      Serial.print("POLZE -> ");                            // Mostra posició A0
+      Serial.print(M0);                                     // Valor A0 mapejat
+      Serial.print(" ] -");                                 //
+      Serial.print(" [ ");                                  //
+      Serial.print("INDEX -> ");                            // Mostra posició A1
+      Serial.print(M1);                                     // Valor A0 mapejat
+      Serial.println(" ]");                                 //
+      Serial.println("");                                   //
+      M = 0;                                                // Torna bucle principal a mode espera
+      delay(100);                                           // 
+    }                                                       //
+  }                                                         //
+  delay(10);                                                //
 }                                                           //
                                                             //
 //////////////////////////////////////////////////////////////
@@ -108,35 +108,50 @@ void loop() {                                               //
 //                          INTERRUPT                       //
 //////////////////////////////////////////////////////////////
                                                             //
-void ISR_interna(){                                         // Funcio interrupcio interna 
+void ISR_interna(){                                         // Funcio interrupcio interna (cada 200ms)
                                                             //
-  static uint32_t temps = millis();
-  if (millis() > temps + 25){
-    x = analogRead(POLZE);                                     
-    y = analogRead(INDEX);               
-    Serial.print("x = ");
-    Serial.print(x);
-    Serial.print(" | ");
-    Serial.print("y = ");
-    Serial.print(y);
-    Serial.println(" | ");
-    array0[i][j] = x; 
-    array1[i][j] = y; 
-    sumx = sumx+x;
-    sumy = sumy+y;
-    i++;
-    temps = millis();
-    if ( i >= files ){
-      j++;
-      aritx = sumx/i;
-      arity = sumy/i;
-      sumx = 0;
-      sumy = 0;
-      i = 0;
-      M = 1;
-      if (j >= columnes){
-        j = 0;
-        for(int i=0;i<files;i++){
+  static uint32_t temps = millis();                         // Timer per evitar rebots
+  if (millis() > temps + t){                                //
+    temps = millis();                                       // Reset temps
+    rA0 = analogRead(POLZE);                                // Lectura sensors                                     
+    rA1 = analogRead(INDEX);                                //
+    //Serial.print("A0 = ");                                // Valors mesures instantànies
+    //Serial.print(rA0);                                    //
+    //Serial.print(" | ");                                  //
+    //Serial.print("A1 = ");                                //
+    //Serial.print(rA1);                                    //
+    //Serial.println(" | ");                                //
+    array0[i][j] = rA0;                                     // Assignació valors en taules
+    array1[i][j] = rA1;                                     //
+    sum0 = sum0+rA0;                                        // Suma de cada mesura
+    sum1 = sum1+rA1;                                        //
+    i++;                                                    // Canvi de fila
+    if ( i >= files ){                                      // Cas ultima fila
+      n++;                                                  // Recompte lectures totals
+      j++;                                                  // Canvi de columna
+      arit0 = sum0/i;                                       // Mitjana aritmetica
+      arit1 = sum1/i;                                       //
+      sum0 = 0;                                             // Reset suma mesures
+      sum1 = 0;                                             //
+      i = 0;                                                // Reset files
+      if ( arit0 <= 700 ) {                                 //
+        arit0 = 701;                                        // Filtratge valors negatius 
+      }                                                     //
+      if ( arit0 >= 950 ) {                                 // Filtratge valors excessius
+        arit0 = 949;                                        //
+      }                                                     //
+      if ( arit1 <= 650 ) {                                 //
+        arit1 = 651;                                        // Filtratge valors negatius 
+      }                                                     //
+      if ( arit1 >= 900 ) {                                 // Filtratge valors excessius
+        arit1 = 899;                                        //
+      }                                                     //
+      M0 = map(arit0,700,950,0,4);                          // Mapejat a rang de valors 0 - 4
+      M1 = map(arit1,650,900,0,4);                          // Mapejat a rang de valors 0 - 4
+      M = 1;                                                // Avis loop principal per mostrar valors finals
+      if (j >= columnes){                                   // Cas ultima columna
+        j = 0;                                              // Reset columnes
+        for(int i=0;i<files;i++){                           // 
           for(int j=0;j<columnes;j++){                      //
             array0[i][j] = 0;                               // Reset array A0
             array1[i][j] = 0;                               // Reset array A1
