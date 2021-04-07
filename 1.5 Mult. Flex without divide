@@ -1,0 +1,175 @@
+//////////////////////////////////////////////////////////////
+//                                                          //
+//         INTEGRATED PROJECT 2 - LSC POWER GLOVE           //
+//         TEAM 2:     IBRA   URI   GERARD   ALEIX          //
+//         CODE 1.5:       2 FLEX WITHOUT DIVIDER           //
+//                                                          //
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//                          SETUP                           //
+//////////////////////////////////////////////////////////////
+                                                            //
+#include <TimerOne.h>                                       //  
+                                                            //          
+int files = 5;                                              // Mida array files
+int columnes = 5;                                           // Mida array columnes
+int array0[5][5];                                           // Arrays
+int array1[5][5];                                           //
+int array2[5][5];                                           //
+int array3[5][5];                                           //
+int array4[5][5];                                           //
+int i = 0;                                                  // Variables de bucle
+int j = 0;                                                  //
+int t = 50;                                                 // Variable temps
+int n = 0;                                                  // Variable comptador
+int rA0 = 0;                                                // Lectura sensors
+int rA1 = 0;                                                //
+int rA2 = 0;                                                //
+int rA3 = 0;                                                //
+int rA4 = 0;                                                //
+int sum0 = 0;                                               // Suma lectures
+int sum1 = 0;                                               //
+int sum2 = 0;                                               //
+int sum3 = 0;                                               //
+int sum4 = 0;                                               //
+int total0 = 0;                                             // Valor final lectures
+int total1 = 0;                                             //
+int total2 = 0;                                             //
+int total3 = 0;                                             //
+int total4 = 0;                                             //
+int M = 0;                                                  // 
+int M0 = 0;                                                 // Mapejat valor final
+int M1 = 0;                                                 //
+int M2 = 0;                                                 //
+int M3 = 0;                                                 //
+int M4 = 0;                                                 //
+                                                            //
+const int POLZE = A0;                                       // Dits de la ma
+const int INDEX = A1;                                       //
+const int COR = A2;                                         //
+const int ANULAR = A3;                                      //
+const int MENUT = A4;                                       //
+                                                            // 
+void setup() {                                              //
+  Serial.begin(9600);                                       // Serial config
+  Serial.println("//////////////////////////////////////////////////////////////");
+  Serial.println("//                                                          //");
+  Serial.println("//         INTEGRATED PROJECT 2 - LSC POWER GLOVE           //");
+  Serial.println("//         TEAM 2:     IBRA   URI   GERARD   ALEIX          //");
+  Serial.println("//         CODE 1.5:       2 FLEX WITHOUT DIVIDER           //");
+  Serial.println("//                                                          //");
+  Serial.println("//////////////////////////////////////////////////////////////");
+                                                            //
+  Timer1.initialize(200000);                                // Interrupció interna cicle 0.2s
+  Timer1.attachInterrupt(ISR_interna);                      // Int interna declaració funció
+                                                            //
+  pinMode(POLZE,INPUT);                                     // Definició variables sensors flex
+  pinMode(INDEX,INPUT);                                     //
+  pinMode(COR,INPUT);                                       //
+  pinMode(ANULAR,INPUT);                                    //
+  pinMode(MENUT,INPUT);                                     //
+}                                                           //
+                                                            //
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//                          MAIN LOOP                       //
+//////////////////////////////////////////////////////////////
+                                                            //
+void loop() {                                               // Rutina principal
+                                                            //
+  if ( M == 1 ){                                            // En cas de retorn M=1
+    static uint32_t temps = millis();                       // 
+    if (millis() > temps + t){                              // Timer per evitar rebots
+      temps = millis();                                     // Reset temps
+      Serial.println("");                                   //
+      Serial.print("CAPTURA ");                             //
+      Serial.print(n);                                      // Lectura nº
+      Serial.print(" [ ");                                  //
+      Serial.print("POLZE -> ");                            // Mostra posició A0
+      Serial.print(M0);                                     // Valor A0 mapejat
+      Serial.print(" ] -");                                 //
+      Serial.print(" [ ");                                  //
+      Serial.print("INDEX -> ");                            // Mostra posició A1
+      Serial.print(M1);                                     // Valor A0 mapejat
+      Serial.println(" ]");                                 //
+      Serial.println("");                                   //
+      M = 0;                                                // Torna bucle principal a mode espera
+      delay(100);                                           // 
+    }                                                       //
+  }                                                         //
+  delay(10);                                                //
+}                                                           //
+                                                            //
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//                          INTERRUPT                       //
+//////////////////////////////////////////////////////////////
+                                                            //
+void ISR_interna(){                                         // Funcio interrupcio interna (cada 200ms)
+                                                            //
+  static uint32_t temps = millis();                         // Timer per evitar rebots
+  if (millis() > temps + t){                                //
+    temps = millis();                                       // Reset temps
+    rA0 = analogRead(POLZE);                                // Lectura sensors                                     
+    rA1 = analogRead(INDEX);                                //
+    //Serial.print("A0 = ");                                // Valors mesures instantànies
+    //Serial.print(rA0);                                    //
+    //Serial.print(" | ");                                  //
+    //Serial.print("A1 = ");                                //
+    //Serial.print(rA1);                                    //
+    //Serial.println(" | ");                                //
+    array0[i][j] = rA0;                                     // Assignació valors en taules
+    array1[i][j] = rA1;                                     //
+    sum0 = sum0+rA0;                                        // Suma de cada mesura
+    sum1 = sum1+rA1;                                        //
+    i++;                                                    // Canvi de fila
+    if ( i >= files ){                                      // Cas ultima fila
+      n++;                                                  // Recompte lectures totals
+      j++;                                                  // Canvi de columna
+      Serial.print("A0 = ");                                // Valors mesures instantànies
+      Serial.print(sum0);                                   //
+      Serial.print(" | ");                                  //
+      Serial.print("A1 = ");                                //
+      Serial.print(sum1);                                   //
+      Serial.println(" | ");                                //
+      total0 = sum0;                                        //
+      total1 = sum1;                                        //
+      sum0 = 0;                                             // Reset suma mesures
+      sum1 = 0;                                             //
+      i = 0;                                                // Reset files
+      if ( total0 <= 3500 ) {                               //
+        total0 = 3501;                                      // Filtratge valors negatius 
+      }                                                     //
+      if ( total0 >= 4750 ) {                               // Filtratge valors excessius
+        total0 = 4749;                                      //
+      }                                                     //
+      if ( total1 <= 3250 ) {                               //
+        total1 = 3251;                                      // Filtratge valors negatius 
+      }                                                     //
+      if ( total1 >= 4500 ) {                               // Filtratge valors excessius
+        total1 = 4499;                                      //
+      }                                                     //
+      M0 = map(total0,3500,4750,0,4);                       // Mapejat a rang de valors 0 - 4
+      M1 = map(total1,3250,4500,0,4);                       // Mapejat a rang de valors 0 - 4
+      M = 1;                                                // Avis loop principal per mostrar valors finals
+      if (j >= columnes){                                   // Cas ultima columna
+        j = 0;                                              // Reset columnes
+        for(int i=0;i<files;i++){                           // 
+          for(int j=0;j<columnes;j++){                      //
+            array0[i][j] = 0;                               // Reset array A0
+            array1[i][j] = 0;                               // Reset array A1
+          }                                                 //
+        }                                                   //
+      }                                                     //
+    }                                                       //
+  }                                                         //
+}                                                           //
+                                                            //
+//////////////////////////////////////////////////////////////
+
+  
+
+  
