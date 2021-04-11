@@ -44,4 +44,7 @@ void printeja() {
     Serial.print(mpu.getPitch(), 2);   // arrodonim el valor a 2
     Serial.print("Roll: ");
     Serial.println(mpu.getRoll(), 2);  // arrodonim el valor a 2
+
+
+    
 }
