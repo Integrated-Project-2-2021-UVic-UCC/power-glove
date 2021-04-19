@@ -1,0 +1,138 @@
+//////////////////////////////////////////////////////////////
+//                                                          //
+//         INTEGRATED PROJECT 2 - LSC POWER GLOVE           //
+//         TEAM 2:     IBRA   URI   GERARD   ALEIX          //
+//         CODE 2.0:           MPU + 2 FLEX                 //
+//                                                          //
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//                          INIT                            //
+//////////////////////////////////////////////////////////////
+                                                            //
+#include "MPU9250.h"                                        //
+                                                            //
+MPU9250 mpu;                                                //
+                                                            //
+int files = 5;                                              // Mida array files
+int columnes = 5;                                           // Mida array columnes
+int array0[5][5];                                           // Arrays
+int array1[5][5];                                           //
+int i = 0;                                                  // Variables de bucle
+int j = 0;                                                  //
+int t = 50;                                                 // Variable temps
+int n = 0;                                                  // Variable comptador    
+int rA0 = 0;                                                // Lectura sensors
+int rA1 = 0;                                                //
+int R = 0;                                                  //
+int P = 0;                                                  //
+int Y = 0;                                                  //
+int sum0 = 0;                                               // Suma lectures
+int sum1 = 0;                                               //
+int M = 0;                                                  // 
+int M0 = 0;                                                 // Mapejat valor final
+int M1 = 0;                                                 //
+
+const int POLZE = A0;                                       // Dits de la ma
+const int INDEX = A1;                                       //
+                                                            //
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//                          SETUP                           //
+//////////////////////////////////////////////////////////////
+                                                            //
+void setup() {                                              //
+  Serial.begin(9600);                                       //
+  Wire.begin();                                             //
+  Serial.println("//////////////////////////////////////////////////////////////");
+  Serial.println("//                                                          //");
+  Serial.println("//         INTEGRATED PROJECT 2 - LSC POWER GLOVE           //");
+  Serial.println("//         TEAM 2:     IBRA   URI   GERARD   ALEIX          //");
+  Serial.println("//         CODE 2.0:           MPU + 2 FLEX                 //");
+  Serial.println("//                                                          //");
+  Serial.println("//////////////////////////////////////////////////////////////");
+  pinMode(POLZE,INPUT);                                     // Definició variables sensors flex
+  pinMode(INDEX,INPUT);                                     //
+  delay(1000);                                              //
+  if (!mpu.setup(0x68)) {                                   //    
+    Serial.println("MPU connection failed.");               //
+    delay(1000);                                            //
+  }                                                         //
+}                                                           //
+                                                            //
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//                          MAIN LOOP                       //
+//////////////////////////////////////////////////////////////
+                                                            //
+void loop() {                                               //
+  if (mpu.update()) {                                       //
+    delay(1000);                                            //
+    static uint32_t prev_ms = millis();                     //
+    if (millis() > prev_ms + t) {                           //
+       Serial.println("");                                  //
+       Serial.print("CAPTURA ");                            //
+       Serial.println(n);                                   // 
+        GYR();                                              //
+        FLEX();                                             //
+        n++;                                                //
+        prev_ms = millis();                                 //
+    }                                                       //
+  }                                                         //
+}                                                           //
+                                                            //
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//                          GYROSCOPE                       //
+//////////////////////////////////////////////////////////////
+                                                            //
+void GYR() {                                                //
+  R = mpu.getRoll();                                        // Lectura angles
+  P = mpu.getPitch();                                       //
+  Y = mpu.getYaw();                                         //
+  Serial.print(" [ ");                                      //
+  Serial.print("ROLL = ");                                  // 
+  Serial.print(R, DEC);                                     //
+  //Serial.print(mpu.getRoll(), 0);                         //
+  Serial.print(" | ");                                      //
+  Serial.print("PITCH = ");                                 //
+  Serial.print(P, DEC);                                     //
+  //Serial.print(mpu.getPitch(), 0);                        //
+  Serial.print(" | ");                                      //
+  Serial.print("YAW = ");                                   //
+  Serial.print(Y, DEC);                                     //
+  //Serial.print(mpu.getYaw(), 0);                          //
+  Serial.println(" ] ");                                    //
+}                                                           //
+                                                            //
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//                          FLEX SENSORS                    //
+//////////////////////////////////////////////////////////////
+                                                            //
+void FLEX() {                                               //
+  rA0 = analogRead(POLZE);                                  // Lectura flex                                    
+  rA1 = analogRead(INDEX);                                  //
+  M0 = map(rA0,700,950,0,4);                                // Mapejat a rang de valors 0 - 4
+  M1 = map(rA1,650,900,0,4);                                // Mapejat a rang de valors 0 - 4
+  Serial.print(" [ ");                                      //
+  Serial.print("POLZE = ");                                 // 
+  Serial.print(rA0);                                        // 
+  Serial.print(" (");                                       //
+  Serial.print(M0);                                         //
+  Serial.print(") ");                                       //
+  Serial.print(" | ");                                      //
+  Serial.print("INDEX = ");                                 //
+  Serial.print(rA1);                                        //
+  Serial.print(" (");                                       //
+  Serial.print(M1);                                         //
+  Serial.print(") ");                                       //
+  Serial.println(" ] ");                                    //
+  Serial.println("");                                       //
+}                                                           //
+                                                            //
+//////////////////////////////////////////////////////////////
