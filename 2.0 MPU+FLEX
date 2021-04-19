@@ -118,7 +118,7 @@ void FLEX() {                                               //
   rA0 = analogRead(POLZE);                                  // Lectura flex                                    
   rA1 = analogRead(INDEX);                                  //
   M0 = map(rA0,700,950,0,4);                                // Mapejat a rang de valors 0 - 4
-  M1 = map(rA1,650,900,0,4);                                // Mapejat a rang de valors 0 - 4
+  M1 = map(rA1,700,950,0,4);                                // Mapejat a rang de valors 0 - 4
   Serial.print(" [ ");                                      //
   Serial.print("POLZE = ");                                 // 
   Serial.print(rA0);                                        // 
