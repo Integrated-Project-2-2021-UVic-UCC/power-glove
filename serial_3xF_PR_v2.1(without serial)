@@ -1,0 +1,52 @@
+#include <TimerOne.h>
+#include "MPU9250.h"
+
+MPU9250 mpu;
+
+float flex2 = A0;
+float flex3 = A1;
+float flex4 = A2;
+float pitch;
+float roll;
+
+
+void setup() {
+  
+  Serial.begin(115200);
+  Wire.begin();
+  delay(500);
+  
+  pinMode(flex2,INPUT);
+  pinMode(flex3,INPUT);
+  pinMode(flex4,INPUT);
+
+  if (!mpu.setup(0x68)) {} // change to your own address
+    
+  Timer1.initialize(100000);                                
+  Timer1.attachInterrupt(ISR_interna);
+  delay(1000);
+}
+
+void loop() {
+    if (mpu.update()) {
+        static uint32_t prev_ms = millis();
+        if (millis() > prev_ms + 100) {
+          pitch = mpu.getPitch();
+          roll = mpu.getRoll();
+          printejar();
+          prev_ms = millis();
+        }
+    }
+}
+void printejar() {
+    Serial.print(flex2);Serial.print("  ");
+    Serial.print(flex3);Serial.print("  ");
+    Serial.print(flex4);Serial.print("  ");
+    Serial.print(pitch);Serial.print("  ");
+    Serial.println(roll);
+}
+void ISR_interna (){
+  flex2 = analogRead(flex2);
+  flex3 = analogRead(flex3);
+  flex4 = analogRead(flex4);
+}
