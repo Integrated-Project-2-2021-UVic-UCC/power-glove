@@ -1,0 +1,111 @@
+#include "MPU9250.h"   
+
+#include <TimerOne.h> 
+                                     
+ MPU9250 mpu;           
+
+const float D2= A0;  //dit 1
+const float D3 = A1; //dit 2
+const float D4= A2;  //dit 3
+
+int t = 200;
+float flex2 = A0;
+float flex3 = A1;
+float flex4 = A2;
+float pitch;
+float roll;
+
+
+
+
+struct Trama {
+  
+  float flex2;
+  float flex3;
+  float flex4;
+  float pitch;
+  float roll;
+  
+};
+
+
+struct Trama trama;
+
+#define SCAPECHAR 0xAA
+#define STARTCHAR 0x11
+#define ENDCHAR 0x22
+
+
+
+void setup(){
+  Serial.begin(115200);
+  Wire.begin();
+  
+  pinMode(D2,INPUT);
+  pinMode(D3,INPUT);
+  pinMode(D4,INPUT);
+
+  
+  
+  if (!mpu.setup(0x68)) {                                   //    
+    Serial.println("MPU connection failed.");               //
+    delay(1000);                                            //
+  }
+  Timer1.initialize(100000);                                
+  Timer1.attachInterrupt(ISR_interna);
+  delay(1000); 
+  
+}
+
+void loop() {
+      if (mpu.update()) {
+        delay(500);
+      }
+}
+
+void enviar_trama(void){
+  char *buf = (char *)&trama;
+  int N = sizeof(Trama);
+  int i;
+  
+  Serial.write(SCAPECHAR);
+  Serial.write(STARTCHAR);
+
+  for(i=0; i<N; i++) {
+    if(buf[i]==SCAPECHAR) {
+      Serial.write(SCAPECHAR);
+      Serial.write(SCAPECHAR);
+    }
+    else {
+      Serial.write(buf[i]);
+    }
+  }
+  Serial.write(SCAPECHAR);
+  Serial.write(ENDCHAR);
+}
+
+void mostra_valors(void){
+  Serial.print("Pitch : ");
+  Serial.print(pitch);
+  Serial.print("    Roll : ");
+  Serial.print(roll);
+  Serial.print("    Flex1 : ");
+  Serial.print(D2);
+  Serial.print("    Flex2 : ");
+  Serial.print(D3);
+  Serial.print("   Flex3 : ");
+  Serial.print(D4);
+}
+void ISR_interna(){                                         // Funcio interrupcio interna (cada 200ms)
+  static uint32_t prev_ms = millis();                       //
+  if (millis() > prev_ms + t) {                             //                                        //
+    pitch = mpu.getPitch();trama.pitch = pitch;
+      roll = mpu.getRoll();trama.roll = roll;
+      flex2 = analogRead(D2);trama.flex2 = flex2;
+      flex3 = analogRead(D3);trama.flex3 = flex3;
+      flex4 = analogRead(D4);trama.flex4 = flex4;
+      Serial.println("Inici interrupt");
+      Serial.println(D2);Serial.println("   ");Serial.println(D3);Serial.println("   ");Serial.println(D4);Serial.println("   ");Serial.println(pitch);Serial.println("   ");Serial.println(roll);
+  }                                                         
+  prev_ms = millis();                                       
+}
