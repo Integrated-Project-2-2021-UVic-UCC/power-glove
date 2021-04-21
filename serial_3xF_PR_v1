@@ -1,0 +1,82 @@
+#include "MPU9250.h"                                        
+            
+
+
+const float D1= A0;  //dit 1
+const float D2 = A1; //dit 2
+const float D3= A2;  //dit 3
+
+struct Trama {
+  float flex1; 
+  float flex2;
+  float flex3;
+  float flex4;
+  float flex5; 
+  float pitch;
+  float roll;
+  
+};
+
+MPU9250 mpu;
+struct Trama trama;
+
+#define SCAPECHAR 0xAA
+#define STARTCHAR 0x11
+#define ENDCHAR 0x22
+
+void enviar_trama(void){
+  char *buf = (char *)&trama;
+  int N = sizeof(Trama);
+  int i;
+  
+  Serial.write(SCAPECHAR);
+  Serial.write(STARTCHAR);
+
+  for(i=0; i<N; i++) {
+    if(buf[i]==SCAPECHAR) {
+      Serial.write(SCAPECHAR);
+      Serial.write(SCAPECHAR);
+    }
+    else {
+      Serial.write(buf[i]);
+    }
+  }
+
+  Serial.write(SCAPECHAR);
+  Serial.write(ENDCHAR);
+}
+
+void setup(){
+  Serial.begin(115200);
+  Wire.begin();
+  
+  pinMode(D1,INPUT)
+  pinMode(D2,INPUT)
+  pinMode(D3,INPUT)
+  
+}
+
+void loop() {
+  
+  char *primero = (char *)&inic;
+  char *buff = (char *)&x;
+  char *ultimo = (char*)&fin;    // * amb això li diem k ´es un punter  i amb & especifiquem la direcció
+
+  trama.flex1 = 0;
+  trama.flex2 = analogRead(D1);
+  trama.flex3 = analogRead(D2);;
+  trama.flex4 = analogRead(D3);;
+  trama.flex5 = 0;
+  trama.pitch = mpu.getPitch();
+  trama.roll = mpu.getRoll();
+  
+  enviar_trama();
+  delay(400);
+}
+
+void GYR() {                                                //
+  R = mpu.getRoll();                                        // Lectura angles
+  P = mpu.getPitch();                                       //
+  Y = mpu.getYaw();                                         //
+  return                                  //
+}
