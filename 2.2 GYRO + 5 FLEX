@@ -29,7 +29,6 @@ int arrayY[5];                                              //
 int i = 0;                                                  // Variables de bucle
 int j = 0;                                                  //
 int t = 50;                                                 // Variable temps
-int n = 0;                                                  // Variable comptador    
 int rA0 = 0;                                                // Lectura sensors
 int rA1 = 0;                                                //
 int rA2 = 0;                                                //
@@ -60,9 +59,9 @@ int MY = 0;                                                 //
                                                             //
 const int POLZE = A0;                                       // Dits de la ma
 const int INDEX = A1;                                       //
-const int COR = A2;                                       //
-const int ANULAR = A3;                                       //
-const int PETIT = A4;                                       //
+const int COR = A2;                                         //
+const int ANULAR = A3;                                      //
+const int PETIT = A6;                                       //
                                                             //
 //////////////////////////////////////////////////////////////
 
@@ -77,7 +76,7 @@ void setup() {                                              //
   Serial.println("//                                                          //");
   Serial.println("//         INTEGRATED PROJECT 2 - LSC POWER GLOVE           //");
   Serial.println("//         TEAM 2:     IBRA   URI   GERARD   ALEIX          //");
-  Serial.println("//         CODE 2.1:           GYRO + 5 FLEX                //");
+  Serial.println("//         CODE 2.2:           GYRO + 5 FLEX                //");
   Serial.println("//                                                          //");
   Serial.println("//////////////////////////////////////////////////////////////");
   pinMode(POLZE,INPUT);                                     // Definició variables sensors flex
@@ -90,8 +89,8 @@ void setup() {                                              //
     Serial.println("MPU connection failed.");               //
     delay(1000);                                            //
   }                                                         //
-  Timer1.initialize(500000);                                // Interrupció interna cicle 0.2s
-  Timer1.attachInterrupt(ISR_interna);                      // Int interna declaració funció//
+  Timer1.initialize(500000);                                // Interrupció interna cicle 
+  Timer1.attachInterrupt(ISR_interna);                      // Int interna declaració funció
 }                                                           //
                                                             //
 //////////////////////////////////////////////////////////////
@@ -110,14 +109,13 @@ void loop() {                                               //
         total2 = sum2;                                      //
         total3 = sum3;                                      //
         total4 = sum4;                                      //       
-        Serial.println("");                                 //
-        Serial.println("/////////////////////////////////");//
-        Serial.print("CAPTURA ");                           //
-        Serial.println(n);                                  //   
         TAULES();                                           //     
         FLEX();                                             //
-        GYR();                                              //       
-        n++;                                                //
+        GYR();                                              //   
+        Serial.println("");                                 //
+        Serial.print("///////////////////////////////////");//
+        Serial.print("///////////////////////////////////");//
+        Serial.println("/////////////////////////////////");//    
         j++;                                                //
         i = 0;                                              //
         for(int i=0;i<files;i++){                           // Reset arrays
@@ -145,11 +143,12 @@ void loop() {                                               //
 void TAULES() {                                             //
                                                             //
   Serial.println("");                                       //
-  Serial.println(" TAULES =  A0  A1  A2  A3  A4  R  P  Y"); //
+  Serial.print(" TAULES =  A0   A1   A2   ");               //
+  Serial.println("A3   A4   R   P   Y");                    //
   Serial.println("");                                       //
   for(int i=0;i<files;i++){                                 //
-    Serial.print("   Nº   ");                               //
-    Serial.print(i);                                        //
+    Serial.print("   Nº  ");                                //
+    Serial.print(i+1);                                      //
     Serial.print(" { ");                                    //
     Serial.print(array0[i]);                                //
     Serial.print(" ");                                      //
@@ -310,7 +309,7 @@ void GYR() {                                                //
 //                          INTERRUPT                       //
 //////////////////////////////////////////////////////////////
                                                             //
-void ISR_interna(){                                         // Funcio interrupcio interna (cada 200ms)
+void ISR_interna(){                                         // Funcio interrupcio interna 
   static uint32_t prev_ms = millis();                       //
   if (millis() > prev_ms + t) {                             //
     rA0 = analogRead(POLZE);                                // Lectura flex 
