@@ -2,7 +2,7 @@
 //                                                          //
 //         INTEGRATED PROJECT 2 - LSC POWER GLOVE           //
 //         TEAM 2:     IBRA   URI   GERARD   ALEIX          //
-//         CODE 2.1:           GYRO + FLEX                  //
+//         CODE 2.1:           GYRO + FLEX + ISR            //
 //                                                          //
 //////////////////////////////////////////////////////////////
 
@@ -59,7 +59,7 @@ void setup() {                                              //
   Serial.println("//                                                          //");
   Serial.println("//         INTEGRATED PROJECT 2 - LSC POWER GLOVE           //");
   Serial.println("//         TEAM 2:     IBRA   URI   GERARD   ALEIX          //");
-  Serial.println("//         CODE 2.1:           GYRO + FLEX                  //");
+  Serial.println("//         CODE 2.1:           GYRO + FLEX + ISR            //");
   Serial.println("//                                                          //");
   Serial.println("//////////////////////////////////////////////////////////////");
   pinMode(POLZE,INPUT);                                     // Definició variables sensors flex
@@ -69,7 +69,7 @@ void setup() {                                              //
     Serial.println("MPU connection failed.");               //
     delay(1000);                                            //
   }                                                         //
-  Timer1.initialize(1000000);                                // Interrupció interna cicle 0.2s
+  Timer1.initialize(500000);                                // Interrupció interna cicle 0.2s
   Timer1.attachInterrupt(ISR_interna);                      // Int interna declaració funció//
 }                                                           //
                                                             //
