@@ -1,0 +1,206 @@
+  
+#include "MPU9250.h"                                        //
+                                                            //
+#include <TimerOne.h>                                       //  
+                                                            //
+MPU9250 mpu;                                                //
+                                                            //
+int files = 5;
+int i = 0;                                                  // Variables de bucle
+int t = 50;                                                 // Variable temps
+int rA0 = 0;                                                // Lectura sensors
+int rA1 = 0;                                                //
+int rA2 = 0;                                                //
+int rA3 = 0;                                                //
+int rA4 = 0;                                                //
+int R = 0;                                                  //
+int P = 0;                                                  //
+int Y = 0;                                                  //
+float sum0 = 0;                                               // Suma lectures
+float sum1 = 0;                                               //
+float sum2 = 0;                                               //
+float sum3 = 0;                                               //
+float sum4 = 0;  
+float sumR = 0;                                                   //
+float sumP = 0;                                                   //
+                                                            //
+const float POLZE = A0;                                       // Dits de la ma
+const float INDEX = A1;                                       //
+const float COR = A2;                                         //
+const float ANULAR = A3;                                      //
+const float PETIT = A6;                                       //
+                                                                     
+struct Trama {
+  
+  float sum0;
+  float sum1;
+  float sum2;
+  float sum3;
+  float sum4;
+  float sumP;
+  float sumR;
+  
+};
+
+struct Trama trama;
+
+#define SCAPECHAR 0xAA
+#define STARTCHAR 0x11
+#define ENDCHAR 0x22
+
+                                                         
+uint8_t addrs[7] = {0};
+uint8_t device_count = 0;
+
+template <typename WireType = TwoWire>
+void scan_mpu(WireType& wire = Wire) {
+    Serial.println("Searching for i2c devices...");
+    device_count = 0;
+    for (uint8_t i = 0x68; i < 0x70; ++i) {
+        wire.beginTransmission(i);
+        if (wire.endTransmission() == 0) {
+            addrs[device_count++] = i;
+            delay(1);
+        }
+    }
+    Serial.print("Found ");
+    Serial.print(device_count, DEC);
+    Serial.println(" I2C devices");
+
+    Serial.print("I2C addresses are: ");
+    for (uint8_t i = 0; i < device_count; ++i) {
+        Serial.print("0x");
+        Serial.print(addrs[i], HEX);
+        Serial.print(" ");
+    }
+    Serial.println();
+}
+
+template <typename WireType = TwoWire>
+uint8_t readByte(uint8_t address, uint8_t subAddress, WireType& wire = Wire) {
+    uint8_t data = 0;
+    wire.beginTransmission(address);
+    wire.write(subAddress);
+    wire.endTransmission(false);
+    wire.requestFrom(address, (size_t)1);
+    if (wire.available()) data = wire.read();
+    return data;
+}                                                           
+                                                            //
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//                          SETUP                           //
+//////////////////////////////////////////////////////////////
+                                                            //
+void setup() {                                              //
+  Serial.begin(115200);                                     //
+  Wire.begin();    
+  Serial.flush();
+  scan_mpu();//
+  pinMode(POLZE,INPUT);                                     // Definició variables sensors flex
+  pinMode(INDEX,INPUT);                                     //
+  pinMode(COR,INPUT);                                       //
+  pinMode(ANULAR,INPUT);                                    //
+  pinMode(PETIT,INPUT);                                     //
+  delay(1000);                                              //
+  if (!mpu.setup(0x68)) {                                   //  És obligatori identificar el port I2C  
+    Serial.println("MPU connection failed.");               //
+    delay(1000);                                            //
+  }                                                         //
+  Timer1.initialize(100000);                                // Interrupció interna cicle 0.5s
+  Timer1.attachInterrupt(ISR_interna);                      // Int interna declaració funció
+}                                                           //
+                                                            //
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//                          MAIN LOOP                       //
+//////////////////////////////////////////////////////////////
+                                                            //
+void loop() {                                               //
+  if (mpu.update()) {                                       //
+    if ( i >= files){                                       //
+      static uint32_t prev_ms = millis();                   //
+      if (millis() > prev_ms + t) {                         //  
+        //printejar();
+        charge();
+        enviar_dada(); 
+        i = 0;sum0 = 0;sum1 = 0;sum2 = 0;sum3 = 0;sum4 = 0;sumP = 0;sumR = 0;
+      prev_ms = millis();                                   //
+      }                                                       //
+    }
+  }                                                           //
+}
+
+//////////////////////////////////////////////////////////////
+void charge (void){
+  trama.sum0 = sum0 ;
+  trama.sum1 = sum1 ;
+  trama.sum2 = sum2 ;
+  trama.sum3 = sum3 ;
+  trama.sum4 = sum4 ;
+  trama.sumP = sumP ;
+  trama.sumR = sumR ;
+  
+}
+void enviar_dada(void){
+  char *buf = (char *)&trama;
+  int N = sizeof(Trama);
+  int i;
+  
+  Serial.write(SCAPECHAR);
+  Serial.write(STARTCHAR);
+
+  for(i=0; i<N; i++) {
+    if(buf[i]==SCAPECHAR) {
+      Serial.write(SCAPECHAR);
+      Serial.write(SCAPECHAR);
+    }
+    else {
+      Serial.write(buf[i]);
+    }
+  }
+  Serial.write(SCAPECHAR);
+  Serial.write(ENDCHAR);
+}
+
+void printejar () {
+  Serial.println("Dades");
+  Serial.print("F0: ");Serial.print(sum0);
+  Serial.print(" F0: ");Serial.print(sum1);
+  Serial.print(" F0: ");Serial.print(sum2);
+  Serial.print(" F0: ");Serial.print(sum3);
+  Serial.print(" F0: ");Serial.println(sum4);
+
+  Serial.print("PITCH : ");Serial.print(sumP);
+  Serial.print("ROLL : ");Serial.println(sumR);
+}
+//////////////////////////////////////////////////////////////
+//                          INTERRUPT                       //
+//////////////////////////////////////////////////////////////
+                                                            //
+void ISR_interna(){                                         // Funcio interrupcio interna 
+  static uint32_t prev_ms = millis();                       //
+  if (millis() > prev_ms + t) {                             //
+    rA0 = analogRead(POLZE);                                // Lectura flex 
+    rA1 = analogRead(INDEX);                                //
+    rA2 = analogRead(COR);                                  //
+    rA3 = analogRead(ANULAR);                               //
+    rA4 = analogRead(PETIT);                                //                                        //
+    sum0 = sum0+rA0;                                        // Suma de cada mesura
+    sum1 = sum1+rA1;                                        //
+    sum2 = sum2+rA2;                                        //
+    sum3 = sum3+rA3;                                        //
+    sum4 = sum4+rA4;                                        //
+    R = mpu.getRoll();                                      // Lectura angles
+    P = mpu.getPitch();                                     //                                      //
+    sumR = R;                                          // Assignació valors en taules
+    sumP = P;                                          //                                        //
+    i++; 
+    if (i >= 5) { delay(50);}
+  }                                                         //
+  prev_ms = millis();                                       //
+}                                                           //
+                                                            //
+//////////////////////////////////////////////////////////////
