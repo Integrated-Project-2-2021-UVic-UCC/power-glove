@@ -1,0 +1,36 @@
+
+import serial
+import time
+import struct
+
+
+SCAPECHAR = b'\xAA'
+STARTCHAR = b'\x11'
+ENDCHAR = b'\x22'
+
+
+def read_trama(ser):
+        buff = b''
+        # Esperar sequencia start.
+        while True:
+                byte = ser.read(1)
+                if byte==SCAPECHAR:
+                        byte2 = ser.read(1)
+                        if byte2==STARTCHAR:
+                                buff = b''
+                        elif byte2==ENDCHAR:
+                                return buff
+                        else:
+                                buff = buff + byte2
+                else:
+                        buff = buff + byte
+
+arduino = serial.Serial("COM6", 115200, timeout=.1)
+
+while True:
+        trama = read_trama(arduino)
+        #print(len(trama))
+        #print(trama)
+        data = struct.unpack("<fffffff",trama)
+        print(data)
+        
