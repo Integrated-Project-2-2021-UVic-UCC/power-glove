@@ -1,0 +1,14 @@
+class MPU :
+    def __init__(self,R,P,Y) :
+        self.update=None
+        self.pitch = P
+        self.roll = R
+        self.yaw = Y
+    def __str__(self) :
+        return str(self.pitch)
+        
+
+
+clase = MPU(33,44,55)
+
+print(clase)
