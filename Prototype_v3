@@ -1,0 +1,56 @@
+import serial
+import time
+import struct
+import numpy as np
+
+SCAPECHAR = b'\xAA'
+STARTCHAR = b'\x11'
+ENDCHAR = b'\x22'
+
+#arduino = serial.Serial("COM6", 115200, timeout=.1)
+
+def read_trama(ser):
+        buff = b''
+        # Esperar sequencia start.
+        while True:
+                byte = ser.read(1)
+                if byte==SCAPECHAR:
+                        byte2 = ser.read(1)
+                        if byte2==STARTCHAR:
+                                buff = b''
+                        elif byte2==ENDCHAR:
+                                return buff
+                        else:
+                                buff = buff + byte2
+                else:
+                        buff = buff + byte
+
+def mapejar (valor,vinf,vsup,minim,maxim) :
+        rangvalors = vsup-vinf
+        #print(rangvalors)
+        rangmap = maxim-minim+1
+        #print(rangmap)
+        calcul = rangvalors / rangmap
+        #print(calcul)
+        mapa = (valor-vinf)/calcul
+        return int(mapa)
+
+
+
+"""
+while True:
+        trama = read_trama(arduino)
+        if len(trama) == 28 :
+                data = struct.unpack("<fffffff",trama)
+                print(data)
+        M0 = mapejar(data[0],2690,3470,0,2);         //POLZE                    // Mapejat a rang de valors 1 - 5
+        M1 = mapejar(data[1],2985,3640,0,3);         //INDEX                    // Mapejat a rang de valors 1 - 5  
+        M2 = mapejar(data[2],2770,3750,0,3);         //COR                    // Mapejat a rang de valors 1 - 5
+        M3 = mapejar(data[3],2753,3700,0,3);         //ANULAR                    // Mapejat a rang de valors 1 - 5
+        M4 = mapejar(data[4],2530,3670,0,2);    
+"""
+
+dades = (3000.0,3000.0,3000.4,3000.4,3000.4)
+dicc = {"A": (1,4,3,3,2),"B": (1,0,0,0,0),"C": (1,2,1,1,0),"D": (1,0,1,1,0),"E": (0,3,2,2,1),"F": (0,2,0,0,0),"G": (0,0,2,2,1),"I": (1,4,2,2,0),"K": (0,0,1,2,1),"L": (0,0,2,2,1),"M": (),"N": (),"O": ()}
+
+
