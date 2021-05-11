@@ -1,0 +1,170 @@
+import serial
+import time
+import struct
+import random
+
+SCAPECHAR = b'\xAA'
+STARTCHAR = b'\x11'
+ENDCHAR = b'\x22'
+
+INICI = b"\x98"
+FINAL = b"\x89"
+
+
+                        #//////////////////////////////////////////////////// VARIABLES ///////////////////////////////////////////////////////////
+
+
+lectura = False
+valors = False
+paraules = False
+F_scan = False
+
+R_absoluta=None
+P_absoluta=None
+Y_absoluta=None
+
+sumatori = 0
+
+
+dicc_tot = {"Prova": [0,0,0,0,0,0,0,0],"A": [1,4,3,3,2,0,0,0],"B": [1,0,0,0,0,0,0,0],"C": [1,2,1,1,0,0,0,0],"D": [1,0,1,1,0,0,0,0],"E": [0,3,2,2,1,0,0,0],"F": [0,2,0,0,0,0,0,0],"G": [0,0,2,2,1,0,0,0],"I": [1,4,2,2,0,0,0,0],"K": [0,0,1,2,1,0,0,0],"L": [0,0,2,2,1,0,0,0],"M":[0,0,0,0,0,0,0,0],"N": [0,0,0,0,0,0,0,0],"O": [0,0,0,0,0,0,0,0]}
+
+
+
+                        #//////////////////////////////////////////////////// FUNCIONS ///////////////////////////////////////////////////////////
+
+
+
+
+def read_trama(ser):
+        buff = b''
+        # Esperar sequencia start.
+        while True:
+                byte = ser.read(1)
+                if byte==SCAPECHAR:
+                        byte2 = ser.read(1)
+                        if byte2==STARTCHAR:
+                                buff = b''
+                        elif byte2==ENDCHAR:
+                                return buff
+                        else:
+                                buff = buff + byte2
+                else:
+                        buff = buff + byte
+def read_char (obj) :
+        buff = b""
+        while True:
+                dada = obj.read(1)
+                if dada == INICI :
+                        buff = b""
+                elif dada == FINAL :
+                        return buff
+                else :
+                        buff = buff + dada
+def mapejar (valor,vinf,vsup,minim,maxim) :
+        rangvalors = vsup-vinf                  #Definim el rang del sensor
+        rangmap = maxim-minim+1                 #Definim el rang de treball
+        calcul = rangvalors / rangmap           #Factor divisor
+        mapa = (valor-vinf)/calcul              #Mapeig del valor
+                                                #Filtratge mapeig
+        if mapa>maxim : return maxim
+        elif mapa<minim :  return minim
+        else : return int(mapa)
+
+def IMU (rot) :
+        #rot_P = abs(P_absoluta - rot[0])
+        #rot_R = abs(P_absoluta - rot[1])
+        #rot_Y = abs(Y_absoluta - rot[2])
+        diferencia = [rot_P,rot_R,rot_Y]
+        print(diferencia)
+
+
+
+
+        
+
+
+
+                #//////////////////////////////////////////////////// MAIN  ///////////////////////////////////////////////////////////
+print("Inici codi")
+arduino = serial.Serial("COM6", 115200, timeout=.1)
+paraules = True
+while True:
+        if paraules :
+                print("Paraules")
+                missatge = read_char(arduino)
+                if missatge == b'Inici_programa' :
+                        print("Correcte")
+                        valors = True
+                        F_scan = True
+                        paraules = False
+        if valors :
+                trama = read_trama(arduino)
+                if (len(trama) == 32)  :
+                        data = struct.unpack("<ffffffff",trama)
+                        data_map = [mapejar(data[0],2900,3400,0,2),mapejar(data[1],3400,4050,0,3),mapejar(data[2],3100,3800,0,3),mapejar(data[3],3000,3800,0,3),mapejar(data[4],2630,3530,0,2),data[5],data[6],data[7]]
+                        if F_scan :
+                                    P_absoluta = data[5]
+                                    R_absoluta = data[6]
+                                    Y_absoluta = data[7]
+                                    F_scan = False
+                        valors_flex = data_map[:5]
+                        for possibilitats in dicc_tot :
+                                pos = dicc_tot[possibilitats][:5]
+                                if pos == valors_flex :
+                                        sumatori+=1
+                        if sumatori>1 :
+                                rotacions = data[5:]
+                                IMU(rotacions)
+                                #IMU(data[5],data[6],data[7])
+                                
+                                
+
+                                
+                                        
+
+
+"""
+                        if lectura :                                            #Lectura de dades
+                        print(len(data))
+                        pitch_anterior = data[5]
+                        roll_anterior = data[6]
+                        
+                else :                                                  #Comparació de dades
+                        print("Comparem")
+                        pitch_actual = data[5]
+                        roll_actual = data[6]
+
+                        dif_pitch = abs(pitch_actual) - abs(pitch_anterior)
+                        dif_pitch = abs(dif_pitch)
+                        dif_roll = abs(roll_actual) - abs(roll_anterior)
+                        dif_roll = abs(dif_roll)
+
+                        for i in dicc_tot :
+                                change_pitch = dicc_tot[i][5]
+                                print(change_pitch)
+                                change_roll = dicc_tot[i][6]
+                                print(change_roll)
+
+                        lectura = True
+                if espera :
+"""                
+
+
+
+
+
+
+
+
+
+
+"""
+for i in dicc2 :
+        while k<=3 :
+                dicc2[i][len(dicc2[i])-k] = random.randrange(-180,180,90)
+                k+=1
+        k=1
+for m in dicc2 :
+        llista = dicc2[m][5:]
+        print(llista)
+"""
