@@ -1,0 +1,232 @@
+import serial
+import time
+import struct
+import random
+
+SCAPECHAR = b'\xAA'
+STARTCHAR = b'\x11'
+ENDCHAR = b'\x22'
+
+INICI = b"\x98"
+FINAL = b"\x89"
+
+
+                        #//////////////////////////////////////////////////// VARIABLES ///////////////////////////////////////////////////////////
+
+
+#lectura = False
+mode_lectura_valors = False  # True al inici de mostrejament de dades
+paraules = False # False al acabar-se la calibració del mpu.
+F_scan = None  #Periode mostreig absoults del RPY
+
+                        #Valors absoults del RPY
+R_absoluta=None
+P_absoluta=None
+Y_absoluta=None
+
+
+sumatori = 0 #sumatori coincidencies del diccionari
+coincidencia = 0 #coincidencia en la rotació de la funció IMU.
+
+inici_post_absolut = False
+canvi = 0
+
+
+dada_anterior = []
+dada_actual = []
+
+
+#dicc_tot = {"Prova" : [0,0,3,0,0,0,0,0],'A': [1, 3, 3, 3, 2, 0, 0, 0], 'B': [1, 0, 0, 0, 0, 0, 0, 0], 'C': [1, 1, 1, 1, 1, 0, 0, 0], 'D': [1, 0, 1, 1, 0, 0, 0, 0], 'E': [0, 3, 3, 3, 2, 0, 0, 0], 'F': [1, 1, 0, 0, 0, 0, 0, 0], 'G': [0, 0, 3, 3, 2, 0, 0, 0], 'I': [0, 3, 3, 3, 0, 0, 0, 0], 'K': [1, 0, 2, 3, 2, 0, 0, 0], 'L ': [0, 0, 3, 3, 2, 0, 0, 0], 'M': [1, 1, 1, 1, 0, 0, 0, 0], 'N': [2, 0, 0, 3, 2, 0, 0, 0], 'O': [1, 2, 1, 0, 0, 0, 0, 0], 'P': [1, 0, 0, 0, 2, 0, 0, 0], 'Q': [1, 1, 1, 1, 0, 0, 0, 0], 'R': [1, 0, 1, 2, 1, 0, 0, 0], 'S': [0, 3, 0, 0, 0, 0, 0, 0], 'T': [1, 1, 0, 0, 0, 0, 0, 0], 'U': [2, 0, 0, 3, 2, 0, 0, 0], '1': [1, 0, 3, 3, 2, 0, 0, 0], '2': [2, 0, 0, 3, 2, 0, 0, 0], '3': [1, 0, 0, 0, 1, 0, 0, 0], '4': [1, 0, 0, 0, 0, 0, 0, 0], '5': [0, 0, 0, 0, 0, 0, 0, 0], 'JO': [1, 0, 3, 3, 2, 0, 0, 0], 'TU': [1, 0, 3, 3, 2, 0, 0, 0], 'ELL/A': [0, 3, 3, 3, 2, 0, 0, 0]}
+dicc_tot = {'A': [1, 3, 3, 3, 2, 160, 85, 170], 'B': [1, 0, 0, 0, 0, 140, 71, 151], 'C': [1, 1, 1, 1, 0, 999, 999, 999], 'D': [1, 0, 1, 1, 0, 999, 999, 999], 'E': [0, 3, 3, 3, 2, 999, 999, 999], 'F': [1, 1, 0, 0, 0, 999, 999, 999], 'G': [0, 0, 3, 3, 2, 130, 80, 115], 'I': [0, 3, 3, 3, 0, 999, 999, 999], 'K': [1, 0, 2, 3, 2, 999, 999, 999], 'L ': [0, 0, 3, 3, 2, 125, 5, 92], 'M': [1, 1, 1, 1, 0, 205, 8, 169], 'N': [2, 0, 0, 3, 2, 260, 12, 248], 'O': [1, 2, 1, 0, 0, 999, 999, 999], 'P': [1, 0, 0, 0, 2, 165, 7, 135], 'Q': [1, 1, 1, 1, 0, 23, 0, 4], 'U': [2, 0, 0, 3, 2, 999, 999, 999], 'R': [1, 0, 1, 2, 1, 999, 999, 999], 'S': [0, 3, 0, 0, 0, 999, 999, 999], 'T': [1, 1, 0, 0, 0, 999, 999, 999], '1': [1, 0, 3, 3, 2, 90, 7, 97], '2': [2, 0, 0, 3, 2, 125, 5, 94], '3': [1, 0, 0, 0, 1, 120, 8, 84], '4': [1, 0, 0, 0, 0, 90, 13, 98], '5': [0, 0, 0, 0, 0, 125, 11, 95], 'JO': [1, 0, 3, 3, 2, 128, 8, 172], 'TU': [1, 0, 3, 3, 2, 20, 0, 190], 'ELL/A': [0, 3, 3, 3, 2, 999, 999, 999], 'ORELLES': [1, 0, 3, 3, 2, 67, 0, 100], 'PEU': [1, 0, 3, 3, 2, 100, 10, 140], 'LLEIG': [1, 0, 0, 0, 0, 70, 2, 94], 'FRED': [1, 3, 3, 3, 2, 92, 3, 92]}
+
+
+                #VARIABLES DE PROVA
+anterior = [-150,140,90]
+actual = [+140,50,-90]
+
+
+
+
+                        #//////////////////////////////////////////////////// FUNCIONS ///////////////////////////////////////////////////////////
+
+
+
+
+def read_trama(ser):
+        buff = b''
+        # Esperar sequencia start.
+        while True:
+                byte = ser.read(1)
+                if byte==SCAPECHAR:
+                        byte2 = ser.read(1)
+                        if byte2==STARTCHAR:
+                                buff = b''
+                        elif byte2==ENDCHAR:
+                                return buff
+                        else:
+                                buff = buff + byte2
+                else:
+                        buff = buff + byte
+def read_char (obj) :
+        buff = b""
+        while True:
+                dada = obj.read(1)
+                if dada == INICI :
+                        buff = b""
+                elif dada == FINAL :
+                        return buff
+                else :
+                        buff = buff + dada
+def mapejar (valor,vinf,vsup,minim,maxim) :
+        rangvalors = vsup-vinf                  #Definim el rang del sensor
+        rangmap = maxim-minim+1                 #Definim el rang de treball
+        calcul = rangvalors / rangmap           #Factor divisor
+        mapa = (valor-vinf)/calcul              #Mapeig del valor
+                                                #Filtratge mapeig
+        if mapa>maxim : return maxim
+        elif mapa<minim :  return minim
+        else : return int(mapa)
+
+
+
+def IMU2 (dicc,llista_claus,actual,anterior) :
+        global coincidencia
+        for i in range (0,len(llista_claus)) :  # for per les coincidencies trobades
+                clau_coincidencia = llista[i]
+                rot = dicc[clau_coincidencia][5:]
+                for k i in range (0,3) :        # estudi R P Y de cada coincidencia
+                        act = actual[k]
+                        ant = anterior[k]
+                        dada_guardada = rot[k]
+                        valor_superior = dada_guardada+10
+                        valor_inferior = dada_guardada-10
+                        if canvi = 0 :
+                                if (act>0 and ant>0) or (act<0 and ant<0) :
+                                        print("Map: ++ o --")
+                                        calcul = ant-act
+                                else :
+                                        print("Error map canvi = 0")
+                        else if canvi = 1 :
+                                if act>0 and ant<0 :
+                                        print("Map: +-")
+                                        calcul = ant - act + 360
+                                else :
+                                        print("Error map en canvi = 1")
+                        else if canvi = 2 :
+                                if act<0 and ant>0 :
+                                        print("Map: -+")
+                                else :
+                                        print("Error map en canvi = 2")
+                        if valor_inferior<= calcul <= valor_superior   :
+                                                coincidencia+=1 #S'ha trobat coincidencia
+
+                if coincidencia>=2 :
+                        print("Valor trobat")#hem acabat
+                        print("La configuració trobada és : ",clau_coincidencia)
+                        
+
+        coincidencia=0
+        calcul = 0
+
+
+def IMU (dicc,llista) :
+        global coincidencia
+        for i in range (0,len(llista)) :
+                possibilitat = llista[i]
+                rot = dicc[possibilitat][5:]
+                for k in range (0,3) :
+                        if llista == [99,99,99] :
+                                break
+                        valor_superior = dicc[possibilitat][k+5]+20
+                        valor_inferior = dicc[possibilitat][k+5]-20
+                        if valor_inferior<= rot[k] <= valor_superior   :
+                                coincidencia+=1
+                if coincidencia >= 2:
+                        print("Configuració trobada : ",possibilitat)
+
+#canvi = 1 --> hem passat pel punt crític en sentit antihorari
+#canvi = 2 --> hem passat pel punt crític en sentit horari
+
+def change (actual,anterior) :
+        global canvi
+        for i in range (0,len(actual))
+                if abs(anterior[i]-actual[i])>300 :
+                        if actual[i]>0 :
+                                canvi = 1
+                        else :
+                                canvi = 2
+                else :
+                        canvi = 0
+        
+
+def lectura_flex(dicc,valors) :
+        global sumatori
+        valors_trobats = []
+        for possibilitats in dicc :
+                pos = dicc[possibilitats][:5]
+                if pos == valors :
+                        sumatori+=1
+                        valors_trobats.append(possibilitats)
+        print(sumatori)
+        return valors_trobats
+
+
+                #//////////////////////////////////////////////////// MAIN  ///////////////////////////////////////////////////////////
+print("Inici codi")
+arduino = serial.Serial("COM6", 115200, timeout=.1)
+paraules = True
+
+print("////////////////////////        INICIALITZACIÓ        /////////////////////////////")
+print("MANTENIR EL GUA EN UNA SUPERFÍCIE PLANA SENSE REALITZAR CAP GEST NI MOVIMENT")
+
+                                #CONDICIONS INCIALS
+paraules = False
+valors = True
+F_scan = 1
+
+while True:
+        if paraules :
+                print("Paraules")
+                missatge = read_char(arduino)
+                if missatge == b'Inici_programa' :
+                        print("Correcte")
+                        mode_lectura_valors = True
+                        paraules = False
+        if mode_lectura_valors :
+                trama = read_trama(arduino)
+                if (len(trama) == 32)  :
+                        dada_anterior = valors_mpu
+                        data = struct.unpack("<ffffffff",trama)
+                        data_map = [mapejar(data[0],2900,3400,0,2),mapejar(data[1],3400,4050,0,3),mapejar(data[2],3100,3800,0,3),mapejar(data[3],3000,3800,0,3),mapejar(data[4],2630,3530,0,2),data[5],data[6],data[7]]
+                        if F_scan<15 :                                          # 1 vegada en cada loop.
+                                P_absoluta = data[5]
+                                R_absoluta = data[6]
+                                Y_absoluta = data[7]
+                                F_scan+=1
+                        else :
+                                F_scan>15 :
+                                        inici_post_absolut = True
+                        valors_flex = data_map[:5]                              #En cada lectura
+                        valors_mpu = data_map[5:8]                              #En cada lectura
+                        dada_actual = valors_mpu                                #En cada lectura
+                        change(dada_actual,dada_anterior)                       #En cada lectura
+                        
+                        #1 de cada 4  
+                                #--*--
+                        llista_configuracions = lectura_flex(dicc_tot,valors_flex)      
+                        if sumatori == 1 :
+                                print("Configuració trobada : ",llista_configuracions[0])
+                        elif sumatori > 1 :
+                                print("Varies configuracions")
+                                IMU(dicc_tot,llista_configuracions)
+                        elif sumatori == 0 :
+                                print("No s'han trobat configuracions")
+                        sumatori=0
+                                #--*--
+                        
+                        #Printeig de valors
+                        
+                        print("Valors : ")
+                        print (valors_flex,valors_mpu,"\n")
+                        print("Change : ")
+                        print(dada_actual,"--->",dada_anterior,"\n")
