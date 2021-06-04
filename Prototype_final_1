@@ -1,0 +1,319 @@
+import serial, time, struct, random, threading, time
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5 import *
+from PyQt5 import uic
+from PyQt5 import QtGui
+
+
+
+
+                        #//////////////////////////////////////////////////// VARIABLES ///////////////////////////////////////////////////////////
+
+
+
+
+                        #//////////////////////////////////////////////////// INTERFICIE ///////////////////////////////////////////////////////////
+
+
+
+
+class Main(QMainWindow):
+        
+        def __init__(self):
+                super().__init__()
+                uic.loadUi("interficie_2.ui",self)
+
+
+                self.paraules = False                                                       #self.paraules = False
+                self.F_scan = 1
+                self.mode_lectura_valors = True
+
+
+                
+                                        #Valors absoults del RPY
+                self.R_absoluta=None
+                self.P_absoluta=None
+                self.Y_absoluta=None
+                self.absolut = None
+
+                self.SCAPECHAR = b'\xAA'
+                self.STARTCHAR = b'\x11'
+                self.ENDCHAR = b'\x22'
+
+                self.INICI = b"\x98"
+                self.FINAL = b"\x89"
+
+
+                self.sumatori = 0 #sumatori coincidencies del diccionari
+                self.coincidencia = 0 #coincidencia en la rotació de la funció IMU
+                self.lectur = "Inici"
+
+                self.inici_post_absolut = False
+                self.canvi = [0,0,0]
+                self.canvi_keys = ["Pitch","Roll","Yaw"]
+                self.lectura=0
+                self.calc = 0   # Fa els calculs del mpu quan és necessari
+                self.llista = []
+                self.sum = 0
+
+
+                self.dada_anterior = []
+                self.dada_actual = []
+                self.valors_mpu = []
+                self.calculs = [0,0,0]
+                self.list_parameters = ['dit_g', 'dit_i', 'dit_b', 'dit_a', 'dit_p', 'yaw', 'pitch', 'roll']
+
+
+
+                self.dicc_tot = {'A': [1, 3, 3, 3, 2, -53, 96, -187], 'B': [1, 0, 0, 0, 0, -53, 100, -185], 'C': [1, 1, 1, 1, 0, 999, 999, 999], 'D': [1, 0, 1, 1, 0, 999, 999, 999], 'E': [0, 3, 3, 3, 2, 10, 90, 999], 'F': [1, 1, 0, 0, 0, 999, 999, 999], 'L': [0, 0, 3, 3, 2, 25, 100, 10], 'I': [0, 3, 3, 3, 0, 999, 999, 999], 'K': [1, 0, 2, 3, 2, 999, 999, 999], 'G ': [0, 0, 3, 3, 2, -55, 105, -114], 'M': [1, 1, 1, 1, 1, 15, -10, 999], 'N': [2, 0, 0, 3, 2, 12, -60, 999], 'O': [1, 2, 1, 0, 0, 999, 999, 999], 'P': [2, 0, 0, 0, 1, 32, 40, 999], 'Q': [1, 1, 1, 1, 1, 7, 150, 999], 'R': [1, 0, 1, 2, 1, 999, 999, 999], 'S': [0, 3, 0, 0, 0, 999, 999, 999], 'T': [1, 1, 0, 0, 0, 999, 999, 999], 'U': [2, 0, 0, 3, 2, 0, 125, -205], '1': [2, 0, 3, 3, 2, 20, 100, 10], '2': [2, 0, 0, 3, 2, 17, 90, 999], '3': [2, 0, 0, 0, 1, 25, 85, 999], '4': [1, 0, 0, 0, 0, 23, 80, 17], '5': [0, 0, 0, 0, 0, 20, 90, 999], 'JO': [2, 0, 3, 3, 2, -20, 115, -190], 'TU': [2, 0, 3, 3, 2, 10, 45, 17], 'ELL/A': [0, 3, 3, 3, 2, 10, 150, 999], 'FRONT': [0, 0, 0, 1, 0, 999, 999, 999], 'ORELLES': [1, 0, 3, 3, 2, 33, 130, -60], 'PEU': [1, 0, 3, 3, 2, 13, 50, 16], 'EUROPA': [0, 0, 0, 3, 2, 999, 999, 999], 'NETEJAR': [0, 1, 2, 0, 0, 999, 999, 999], 'GRIS': [1, 0, 3, 0, 0, 999, 999, 999], 'LLEIG': [1, 0, 0, 0, 0, 18, 130, -160], 'DIFICIL': [1, 2, 3, 3, 2, 999, 999, 999], 'FRED': [1, 3, 3, 3, 2, 10, 100, -70], 'SALAT': [0, 1, 1, 0, 0, 999, 999, 999],'Inici': [0, 0, 0, 0, 0, 999, 999, 999]}
+                self.dicc_interficie = {'dit_g': None, 'dit_i': None, 'dit_b': None, 'dit_a': None, 'dit_p': None, 'yaw': None, 'pitch': None, 'roll': None}
+
+                
+                self.arduino = serial.Serial("COM6", 115200, timeout=.1)
+
+                self.timer = QTimer(self)
+                self.timer.timeout.connect(self.actualitza)
+                self.timer.start(50)
+
+                self.flag=True
+                self.t=threading.Thread(target=self.bucle,args=(lambda:self.flag,))
+                self.t.start()
+                                #CONDICIONS INCIALS
+        
+                
+                                                         #self.mode_lectura_valors = True
+
+
+
+        def actualitza (self) :
+                
+                self.lcdThumb.display(self.dicc_interficie[self.list_parameters[0]])    
+                self.lcdIndex.display(self.dicc_interficie[self.list_parameters[1]])    
+                self.lcdMiddle.display(self.dicc_interficie[self.list_parameters[2]])   
+                self.lcdRing.display(self.dicc_interficie[self.list_parameters[3]])     
+                self.lcdPinky.display(self.dicc_interficie[self.list_parameters[4]])    
+                self.lcdPitch.display(self.dicc_interficie[self.list_parameters[6]])
+                self.lcdRoll.display(self.dicc_interficie[self.list_parameters[7]])
+                self.lcdYaw.display(self.dicc_interficie[self.list_parameters[5]])
+                self.lecture.setText(self.lectur)
+                
+                        #//////////////////////////////////////////////////// FUNCIONS ///////////////////////////////////////////////////////////
+
+        def read_trama(self,ser):
+                buff = b''
+                # Esperar sequencia start.
+                while True:
+                        byte = ser.read(1)
+                        if byte==self.SCAPECHAR:
+                                byte2 = ser.read(1)
+                                if byte2==self.STARTCHAR:
+                                        buff = b''
+                                elif byte2==self.ENDCHAR:
+                                        return buff
+                                else:
+                                        buff = buff + byte2
+                        else:
+                                buff = buff + byte
+        def read_char (self,obj) :
+                buff = b""
+                while True:
+                        dada = obj.read(1)
+                        if dada == self.INICI :
+                                buff = b""
+                        elif dada == self.FINAL :
+                                return buff
+                        else :
+                                buff = buff + dada
+        def mapejar (self,valor,vinf,vsup,minim,maxim) :
+                rangvalors = vsup-vinf                  #Definim el rang del sensor
+                rangmap = maxim-minim+1                 #Definim el rang de treball
+                calcul = rangvalors / rangmap           #Factor divisor
+                mapa = (valor-vinf)/calcul              #Mapeig del valor
+                                                        #Filtratge mapeig
+                if mapa>maxim : return maxim
+                elif mapa<minim :  return minim
+                else : return int(mapa)
+
+
+
+        def IMU2 (self,llista_claus,actual,anterior) :
+                for i in range (0,len(llista_claus)) :  # for per les coincidencies trobades
+                        clau_coincidencia = llista_claus[i]
+                        print(clau_coincidencia)
+                        rot = self.dicc_tot[clau_coincidencia][5:] #rotacions guardades
+                        if rot == [999,999,999] :  # If de seguretat per si alguna configuració trobada és incorrecte i té un 999,999,999
+                                                   # indicant que és un signe amb orientació unica
+                                return
+                        #print(clau_coincidencia,"-->",rot)
+                        for k in range (0,3) :        # estudi R P Y de cada coincidencia
+                                act = actual[k]
+                                #ant = anterior[k]
+                                dada_guardada = rot[k]
+                                #print("Rotació actual / absoluta / guardada :  ",act,"  /  ",self.absolut[k],"  /  ",dada_guardada)
+                                valor_superior = dada_guardada+20
+                                valor_inferior = dada_guardada-20
+                                #print("valors_superior : ",valor_superior,"valor_inferior : ",valor_inferior)
+                                if self.canvi[k] == 0 :
+                                        self.calc = act-self.absolut[k]
+                                elif self.canvi[k] == 1 :                               #HORARI
+                                        self.calc = act-self.absolut[k]+360
+                                elif self.canvi[k] == 2 :                               #ANTIHORARI
+                                        self.calc = act-self.absolut[k]-360
+                                if valor_inferior<= self.calc <= valor_superior   :
+                                        self.coincidencia+=1 #S'ha trobat coincidencia
+                                        #print("Valor_dicc : ",dada_guardada,"Calcul ",self.calc)
+                                        #print("Coincidencia",self.coincidencia)
+                                        
+                                self.calculs[k] = self.calc
+                                self.calc=0
+                        if self.coincidencia>=2 :
+                                print("Valor trobat")#hem acabat
+                                print("La configuració trobada és : ",clau_coincidencia)
+                                for h in range (0,10) :
+                                        self.lectur = str(clau_coincidencia)
+                                        print("\n")
+                                self.coincidencia=0
+                                return
+                        self.coincidencia=0
+                
+
+
+
+        def IMU (self,llista) :
+                calc = 0
+                self.calculs = [0,0,0]
+                #print("Actual  : ","[  P ,  R  ,  Y  ]","\n")
+                #print("Absolut : ",absolut)
+                for k in range (0,3) :
+                        act = llista[k]
+                        if self.canvi[k] == 0 :
+                                calc = act-self.absolut[k]
+                        elif self.canvi[k] == 1 :                               #HORARI
+                                calc = act-self.absolut[k]+360
+                        elif self.canvi[k] == 2 :                          #ANTIHORARI
+                                calc = act-self.absolut[k]-360
+                        self.calculs[k] = calc
+                """
+                print("Actual  : ",llista,"\n")
+                print("\n")
+                print("        CALCULS : ",self.calculs)
+                #print("        Canvi :          ",self.canvi)
+                print("\n")
+                """
+
+        #canvi = 1 --> hem passat pel punt crític en sentit horari
+        #canvi = 2 --> hem passat pel punt crític en sentit antihorari
+
+        def change (self,actual,anterior) :
+                if anterior == [] :
+                        return
+                for i in range (0,len(actual)) :
+                        m = anterior[i]-actual[i]
+                        m = abs(m)
+                        if m>300 :
+                                if actual[i]<0 :
+                                        if self.canvi[i] != 0 :
+                                                self.canvi[i] = 0
+                                        else:
+                                                self.canvi[i] = 1
+                                else :
+                                        if self.canvi[i] != 0:
+                                                self.canvi[i] = 0
+                                        else :
+                                                self.canvi[i] = 2
+
+        def lectura_flex(self,dicc,valors) :
+                valors_trobats = []
+                for possibilitats in dicc :
+                        pos = dicc[possibilitats][:5]
+                        if pos == valors :
+                                self.sumatori+=1
+                                valors_trobats.append(possibilitats)
+                return valors_trobats
+
+
+        def info_interficie (self,llista) :
+                for m in range (0,len(llista)) :
+                        self.dicc_interficie[self.list_parameters[m]] = llista[m]
+
+        def bucle(self,flag):
+                while flag():
+                        self.actualitza()
+                        if self.paraules :
+                                missatge = self.read_char(self.arduino)
+                                if missatge == b'Inici_programa' :
+                                        print("Correcte")
+                                        self.lectur = "Calibration OK"
+                                        self.mode_lectura_valors = True
+                                        self.paraules = False
+                                else :
+                                        print(missatge)
+                                        #a = missatge[2:(len(missatge)-3)]
+                                        a =missatge.decode('utf-8')
+                                        self.lectur = str(a)
+                        if self.mode_lectura_valors :
+                                self.lectur = "Calibration mode"
+                                trama = self.read_trama(self.arduino)
+                                if (len(trama) == 32)  :
+                                        self.dada_anterior = self.valors_mpu
+                                        data = struct.unpack("<ffffffff",trama)
+                                        data_map = [self.mapejar(data[0],2900,3300,0,2),self.mapejar(data[1],3600,4250,0,3),self.mapejar(data[2],3100,3900,0,3),self.mapejar(data[3],3000,3800,0,3),self.mapejar(data[4],2600,3700,0,2),data[5],data[6],data[7]]
+                                        self.info_interficie(data_map)
+                                        if self.F_scan<25 :                                          # 1 vegada en cada loop.
+                                                self.P_absoluta = data[5]
+                                                self.R_absoluta = data[6]
+                                                self.Y_absoluta = data[7]
+                                                self.F_scan+=1
+                                        elif self.F_scan == 25 :
+                                                self.absolut = [self.P_absoluta,self.R_absoluta,self.Y_absoluta]
+                                                self.F_scan+=1
+                                        else:
+                                                self.valors_flex = data_map[:5]                              #En cada lectura
+                                                self.valors_mpu = data_map[5:8]                              #En cada lectura
+                                                self.dada_actual = self.valors_mpu                                #En cada lectura (sintaxis)
+                                                self.change(self.dada_actual,self.dada_anterior)                       #En cada lectura
+                                                if self.lectura==4 :   
+                                                #1 de cada 4  
+                                                
+                                                        self.IMU(self.dada_actual)
+                                                        self.llista_configuracions = self.lectura_flex(self.dicc_tot,self.valors_flex)      
+                                                        if self.sumatori == 1 :
+                                                                print("Configuració trobada : ",self.llista_configuracions[0])
+                                                                self.lectur = self.llista_configuracions[0]
+                                                        elif self.sumatori > 1 :
+                                                                print("Varies configuracions")
+                                                                self.lectur = "Matching.."
+                                                                self.IMU2(self.llista_configuracions,self.dada_actual,self.dada_anterior)
+                                                        elif self.sumatori == 0 :
+                                                                print("No s'han trobat configuracions")
+                                                                self.lectur = "   "
+                                                        self.sumatori=0
+                                                                #--*--
+                                                        print ("Flex : ",self.valors_flex,"Mpu : ",self.valors_mpu,"\n")
+                                                        self.lectura=0
+                                                self.lectura+=1
+                                                print("\n")
+                                                print("CALCULS : ",self.calculs)
+                                                print("\n")
+
+
+        def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+                self.flag=False
+                self.t.join()
+                return super().closeEvent(a0)
+
+
+                #//////////////////////////////////////////////////// MAIN  ///////////////////////////////////////////////////////////
+                
+print("////////////////////////        INICIALITZACIÓ        /////////////////////////////")
+print("MANTENIR EL GUA EN UNA SUPERFÍCIE PLANA SENSE REALITZAR CAP GEST NI MOVIMENT")           
+
+app=QApplication([])
+finestra=Main()
+finestra.show()
+app.exec_()
+
+
+
+
